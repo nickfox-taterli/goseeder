@@ -25,7 +25,6 @@ type Server struct {
 	Status ServerStatus
 }
 
-
 func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
 	//开始执行删除操作
 	if s.Status.FreeSpaceOnDisk < s.Rule.DiskThreshold && true {
@@ -33,12 +32,12 @@ func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
 		options.Filter = "all"
 		if ts, err := s.Client.Torrent.GetList(&options); err == nil {
 			for _, t := range ts {
-				for _,n := range cfg.Node{
+				for _, n := range cfg.Node {
 					if n.Source == t.Category {
-						if trackers,err := s.Client.Torrent.GetTrackers(t.Hash);err == nil && (int(time.Now().Unix()) - t.AddedOn) > s.Rule.MinAliveTime {
-							for _,tracker := range trackers {
+						if trackers, err := s.Client.Torrent.GetTrackers(t.Hash); err == nil && (int(time.Now().Unix())-t.AddedOn) > s.Rule.MinAliveTime {
+							for _, tracker := range trackers {
 								if tracker.Status == model.TrackerStatusNotContacted || tracker.Status == model.TrackerStatusNotWorking {
-									s.Client.Torrent.DeleteTorrents([]string {t.Hash},true)
+									s.Client.Torrent.DeleteTorrents([]string{t.Hash}, true)
 									fmt.Println("清理无效种子." + t.Name)
 								}
 							}
@@ -46,15 +45,15 @@ func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
 
 						if t.AmountLeft == 0 {
 							if t.Upspeed == 0 && t.AmountLeft == 0 {
-								if (int(time.Now().Unix()) - t.CompletionOn) > n.Rule.SeederTime || t.Ratio > n.Rule.SeederRatio {
-									s.Client.Torrent.DeleteTorrents([]string {t.Hash},true)
+								if (int(time.Now().Unix())-t.CompletionOn) > n.Rule.SeederTime || t.Ratio > n.Rule.SeederRatio {
+									s.Client.Torrent.DeleteTorrents([]string{t.Hash}, true)
 									db.MarkFinished(t.Hash)
 									fmt.Println("标记完成种子." + t.Name)
 								}
 							}
-						}else{
+						} else {
 							if (int(time.Now().Unix()) - t.CompletionOn) > s.Rule.MaxAliveTime {
-								s.Client.Torrent.DeleteTorrents([]string {t.Hash},true)
+								s.Client.Torrent.DeleteTorrents([]string{t.Hash}, true)
 								fmt.Println("删除超时种子." + t.Name)
 							}
 						}
@@ -84,11 +83,11 @@ func (s *Server) ServerRuleTest() bool {
 func (s *Server) AddTorrentByURL(URL string, Size int) bool {
 	var options model.AddTorrentsOptions
 	options.Savepath = "/downloads/"
-	options.Category = strings.Split(strings.Split(URL,"//")[1],"/")[0]
-	options.Paused = "true"
+	options.Category = strings.Split(strings.Split(URL, "//")[1], "/")[0]
+	options.Paused = "false"
 
 	if Size < s.Rule.MaxTaskSize && Size > s.Rule.MinTaskSize && s.ServerRuleTest() == true {
-		if err := s.Client.Torrent.AddURLs([]string {URL},&options);err == nil{
+		if err := s.Client.Torrent.AddURLs([]string{URL}, &options); err == nil {
 			return true
 		}
 	}
@@ -120,7 +119,10 @@ func (s *Server) CalcEstimatedQuota() {
 		s.Status.DownInfoSpeed = r.DlInfoSpeed
 	}
 
-	fmt.Println(s.Status)
+	fmt.Printf("[%s]当前磁盘空间余量 %.2f GB[%.2f GB],上传速度 %.2f MB/s,下载速度 %.2f MB/s.\n",
+		s.Remark, float64(s.Status.FreeSpaceOnDisk)/1073741824, float64(s.Status.EstimatedQuota)/1073741824.0,
+		float64(s.Status.UpInfoSpeed)/1048576.0, float64(s.Status.DownInfoSpeed)/1048576.0,
+	)
 }
 
 func NewClientWrapper(baseURL string, username string, password string, remark string, rule config.ServerRule) Server {
