@@ -46,7 +46,8 @@ func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
 						if t.AmountLeft == 0 {
 							if t.Upspeed == 0 && t.AmountLeft == 0 {
 								if (int(time.Now().Unix())-t.CompletionOn) > n.Rule.SeederTime || t.Ratio > n.Rule.SeederRatio {
-									s.Client.Torrent.DeleteTorrents([]string{t.Hash}, true)
+									err = s.Client.Torrent.DeleteTorrents([]string{t.Hash}, true)
+									fmt.Println(err)
 									db.MarkFinished(t.Hash)
 									fmt.Println("标记完成种子." + t.Name)
 								}
@@ -84,7 +85,6 @@ func (s *Server) AddTorrentByURL(URL string, Size int) bool {
 	var options model.AddTorrentsOptions
 	options.Savepath = "/downloads/"
 	options.Category = strings.Split(strings.Split(URL, "//")[1], "/")[0]
-	options.Paused = "false"
 
 	if Size < s.Rule.MaxTaskSize && Size > s.Rule.MinTaskSize && s.ServerRuleTest() == true {
 		if err := s.Client.Torrent.AddURLs([]string{URL}, &options); err == nil {
