@@ -27,7 +27,7 @@ type Server struct {
 
 func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
 	//开始执行删除操作
-	if s.Status.FreeSpaceOnDisk < s.Rule.DiskThreshold && true {
+	if s.Status.FreeSpaceOnDisk < s.Rule.DiskThreshold {
 		var options model.GetTorrentListOptions
 		options.Filter = "all"
 		if ts, err := s.Client.Torrent.GetList(&options); err == nil {

@@ -135,8 +135,8 @@ func (c Client) DeleteTorrents(hashes []string, deleteFiles bool) error {
 	params := url.Values{}
 	params.Add("hashes", value)
 	params.Add("deleteFiles", fmt.Sprintf("%v", deleteFiles))
-	endpoint := c.BaseUrl + "/delete?" + params.Encode()
-	if err := pkg.Post(c.Client, endpoint, nil); err != nil {
+	var res string
+	if err := pkg.GetInto(c.Client, &res, c.BaseUrl + "/delete?" + params.Encode(), nil); err != nil {
 		return err
 	}
 	return nil
