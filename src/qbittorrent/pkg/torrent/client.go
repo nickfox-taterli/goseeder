@@ -112,8 +112,8 @@ func (c Client) StopTorrents(hashes []string) error {
 	value := strings.Join(hashes, "|")
 	params := url.Values{}
 	params.Add("hashes", value)
-	endpoint := c.BaseUrl + "/pause?" + params.Encode()
-	if err := pkg.Post(c.Client, endpoint, nil); err != nil {
+	var res string
+	if err := pkg.GetInto(c.Client, &res, c.BaseUrl + "/pause?" + params.Encode(), nil); err != nil {
 		return err
 	}
 	return nil
@@ -123,8 +123,8 @@ func (c Client) ResumeTorrents(hashes []string) error {
 	value := strings.Join(hashes, "|")
 	params := url.Values{}
 	params.Add("hashes", value)
-	endpoint := c.BaseUrl + "/resume?" + params.Encode()
-	if err := pkg.Post(c.Client, endpoint, nil); err != nil {
+	var res string
+	if err := pkg.GetInto(c.Client, &res, c.BaseUrl + "/resume?" + params.Encode(), nil); err != nil {
 		return err
 	}
 	return nil
@@ -146,8 +146,8 @@ func (c Client) RecheckTorrents(hashes []string) error {
 	value := strings.Join(hashes, "|")
 	params := url.Values{}
 	params.Add("hashes", value)
-	endpoint := c.BaseUrl + "/recheck?" + params.Encode()
-	if err := pkg.Post(c.Client, endpoint, nil); err != nil {
+	var res string
+	if err := pkg.GetInto(c.Client, &res, c.BaseUrl + "/recheck?" + params.Encode(), nil); err != nil {
 		return err
 	}
 	return nil
@@ -157,8 +157,8 @@ func (c Client) ReannounceTorrents(hashes []string) error {
 	value := strings.Join(hashes, "|")
 	params := url.Values{}
 	params.Add("hashes", value)
-	endpoint := c.BaseUrl + "/reannounce?" + params.Encode()
-	if err := pkg.Post(c.Client, endpoint, nil); err != nil {
+	var res string
+	if err := pkg.GetInto(c.Client, &res, c.BaseUrl + "/reannounce?" + params.Encode(), nil); err != nil {
 		return err
 	}
 	return nil

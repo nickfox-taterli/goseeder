@@ -67,14 +67,17 @@ func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
 
 func (s *Server) ServerRuleTest() bool {
 	if s.Status.UpInfoSpeed > s.Rule.MaxSpeed {
+		fmt.Println(s.Remark + "上传速度过快,规则测试失败.")
 		return false
 	}
 
 	if s.Status.DownInfoSpeed > s.Rule.MaxSpeed {
+		fmt.Println(s.Remark + "下载速度过快,规则测试失败.")
 		return false
 	}
 
 	if s.Status.ConcurrentDownload > s.Rule.ConcurrentDownload {
+		fmt.Println(s.Remark + "同时任务数过多,规则测试失败.")
 		return false
 	}
 
@@ -112,6 +115,8 @@ func (s *Server) CalcEstimatedQuota() {
 				s.Status.EstimatedQuota -= t.AmountLeft
 			}
 		}
+	}else{
+		fmt.Println(err)
 	}
 
 	if r, err := s.Client.Transfer.GetTransferInfo(); err == nil {
