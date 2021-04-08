@@ -77,7 +77,7 @@ func (s *Server) ServerRuleTest() bool {
 	}
 
 	if s.Status.ConcurrentDownload > s.Rule.ConcurrentDownload {
-		fmt.Printf(s.Remark + "同时任务数过多,规则测试失败,限制个数 %d,现在个数 %d MB \n",s.Rule.ConcurrentDownload,s.Status.ConcurrentDownload)
+		fmt.Printf(s.Remark + "同时任务数过多,规则测试失败,限制个数 %d,现在个数 %d \n",s.Rule.ConcurrentDownload,s.Status.ConcurrentDownload)
 		return false
 	}
 
