@@ -52,8 +52,9 @@ func main() {
 					for _, server := range servers {
 							if Size,err := strconv.Atoi(t.Size);err == nil{
 								if server.AddTorrentByURL(t.URL,Size) == true {
-									fmt.Println("添加了种子:" + t.Title )
+									fmt.Println(server.Remark + "添加了种子:" + t.Title )
 									db.Insert(t.Title, t.GUID, t.URL)
+									server.CalcEstimatedQuota()
 								}
 							}
 					}

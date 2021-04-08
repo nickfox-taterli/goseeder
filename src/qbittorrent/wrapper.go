@@ -67,19 +67,21 @@ func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
 
 func (s *Server) ServerRuleTest() bool {
 	if s.Status.UpInfoSpeed > s.Rule.MaxSpeed {
-		fmt.Println(s.Remark + "上传速度过快,规则测试失败.")
+		fmt.Printf(s.Remark + "上传速度过快,规则测试失败,限制速度 %.2f MB,现在速度 %.2f MB \n",float64(s.Rule.MaxSpeed) / 1048576.0,float64(s.Status.UpInfoSpeed) / 1048576.0)
 		return false
 	}
 
 	if s.Status.DownInfoSpeed > s.Rule.MaxSpeed {
-		fmt.Println(s.Remark + "下载速度过快,规则测试失败.")
+		fmt.Printf(s.Remark + "下载速度过快,规则测试失败,限制速度 %.2f MB,现在速度 %.2f MB \n",float64(s.Rule.MaxSpeed) / 1048576.0,float64(s.Status.DownInfoSpeed) / 1048576.0)
 		return false
 	}
 
 	if s.Status.ConcurrentDownload > s.Rule.ConcurrentDownload {
-		fmt.Println(s.Remark + "同时任务数过多,规则测试失败.")
+		fmt.Printf(s.Remark + "同时任务数过多,规则测试失败,限制个数 %d,现在个数 %d MB \n",s.Rule.ConcurrentDownload,s.Status.ConcurrentDownload)
 		return false
 	}
+
+	fmt.Printf(s.Remark + "规则测试通过.\n")
 
 	return true
 }
