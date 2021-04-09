@@ -29,6 +29,7 @@ type ServerRule struct {
 	MaxAliveTime       int `json:"max_alivetime"`
 	MinTaskSize        int `json:"min_tasksize"`
 	MaxTaskSize        int `json:"max_tasksize"`
+	MaxDiskLatency	   int `json:"max_disklatency"`
 }
 
 type Server struct {

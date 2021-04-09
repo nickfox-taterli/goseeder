@@ -16,6 +16,7 @@ type ServerStatus struct {
 	ConcurrentDownload int
 	UpInfoSpeed        int
 	DownInfoSpeed      int
+	DiskLatency        int
 }
 
 type Server struct {
@@ -66,25 +67,32 @@ func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
 }
 
 func (s *Server) ServerRuleTest() bool {
-	if s.Status.UpInfoSpeed > s.Rule.MaxSpeed {
-		fmt.Printf(s.Remark + "上传速度过快,规则测试失败,限制速度 %.2f MB,现在速度 %.2f MB \n",float64(s.Rule.MaxSpeed) / 1048576.0,float64(s.Status.UpInfoSpeed) / 1048576.0)
+	if s.Rule.MaxDiskLatency < s.Status.DiskLatency {
+		fmt.Printf(s.Remark+"磁盘延迟过大,限制延迟 %d ms,现在延迟 %d ms \n", s.Rule.MaxDiskLatency,s.Status.DiskLatency)
 		return false
 	}else{
-		fmt.Printf(s.Remark + "上传速度过快,规则测试成功,限制速度 %.2f MB,现在速度 %.2f MB \n",float64(s.Rule.MaxSpeed) / 1048576.0,float64(s.Status.UpInfoSpeed) / 1048576.0)
+		fmt.Printf(s.Remark+"磁盘延迟正常,限制延迟 %d ms,现在延迟 %d ms \n", s.Rule.MaxDiskLatency,s.Status.DiskLatency)
+	}
+
+	if s.Status.UpInfoSpeed > s.Rule.MaxSpeed {
+		fmt.Printf(s.Remark+"上传速度过快,规则测试失败,限制速度 %.2f MB,现在速度 %.2f MB \n", float64(s.Rule.MaxSpeed)/1048576.0, float64(s.Status.UpInfoSpeed)/1048576.0)
+		return false
+	} else {
+		fmt.Printf(s.Remark+"上传速度过快,规则测试成功,限制速度 %.2f MB,现在速度 %.2f MB \n", float64(s.Rule.MaxSpeed)/1048576.0, float64(s.Status.UpInfoSpeed)/1048576.0)
 	}
 
 	if s.Status.DownInfoSpeed > s.Rule.MaxSpeed {
-		fmt.Printf(s.Remark + "下载速度过快,规则测试失败,限制速度 %.2f MB,现在速度 %.2f MB \n",float64(s.Rule.MaxSpeed) / 1048576.0,float64(s.Status.DownInfoSpeed) / 1048576.0)
+		fmt.Printf(s.Remark+"下载速度过快,规则测试失败,限制速度 %.2f MB,现在速度 %.2f MB \n", float64(s.Rule.MaxSpeed)/1048576.0, float64(s.Status.DownInfoSpeed)/1048576.0)
 		return false
-	}else{
-		fmt.Printf(s.Remark + "下载速度过快,规则测试成功,限制速度 %.2f MB,现在速度 %.2f MB \n",float64(s.Rule.MaxSpeed) / 1048576.0,float64(s.Status.DownInfoSpeed) / 1048576.0)
+	} else {
+		fmt.Printf(s.Remark+"下载速度过快,规则测试成功,限制速度 %.2f MB,现在速度 %.2f MB \n", float64(s.Rule.MaxSpeed)/1048576.0, float64(s.Status.DownInfoSpeed)/1048576.0)
 	}
 
 	if s.Status.ConcurrentDownload > s.Rule.ConcurrentDownload {
-		fmt.Printf(s.Remark + "同时任务数过多,规则测试失败,限制个数 %d,现在个数 %d \n",s.Rule.ConcurrentDownload,s.Status.ConcurrentDownload)
+		fmt.Printf(s.Remark+"同时任务数过多,规则测试失败,限制个数 %d,现在个数 %d \n", s.Rule.ConcurrentDownload, s.Status.ConcurrentDownload)
 		return false
-	}else{
-		fmt.Printf(s.Remark + "同时任务数过多,规则测试成功,限制个数 %d,现在个数 %d \n",s.Rule.ConcurrentDownload,s.Status.ConcurrentDownload)
+	} else {
+		fmt.Printf(s.Remark+"同时任务数过多,规则测试成功,限制个数 %d,现在个数 %d \n", s.Rule.ConcurrentDownload, s.Status.ConcurrentDownload)
 	}
 
 	return true
@@ -107,6 +115,7 @@ func (s *Server) AddTorrentByURL(URL string, Size int) bool {
 func (s *Server) CalcEstimatedQuota() {
 	// 这里计算出来的是磁盘正在可以用的空间
 	if r, err := s.Client.Sync.GetMainData(); err == nil {
+		s.Status.DiskLatency = r.ServerState.AverageTimeQueue
 		s.Status.FreeSpaceOnDisk = r.ServerState.FreeSpaceOnDisk
 		s.Status.EstimatedQuota = r.ServerState.FreeSpaceOnDisk
 		// 这里计算出来的是磁盘预期可以用的空间.(假设种子会全部下载)
@@ -120,7 +129,7 @@ func (s *Server) CalcEstimatedQuota() {
 				}
 				s.Status.EstimatedQuota -= t.AmountLeft
 			}
-		}else{
+		} else {
 			//如果无法获取状态,直接让并行任务数显示最大以跳过规则.
 			s.Status.ConcurrentDownload = 65535
 		}
