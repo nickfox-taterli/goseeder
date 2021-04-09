@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/robfig/cron"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"seeder/src/config"
 	"seeder/src/datebase"
@@ -11,10 +13,32 @@ import (
 	"strconv"
 )
 
+func checkin() {
+
+}
+
 func main() {
 	var db datebase.Client
 	var nodes []nexus.Client
 	var servers []qbittorrent.Server
+
+	cron := cron.New()
+
+	cron.AddFunc("@every 30s", func() {
+		url := "https://api.honeybadger.io/v1/check_in/vOIMxP"
+
+		client := &http.Client{
+		}
+		req, err := http.NewRequest("GET", url, nil)
+
+		if err != nil {
+			res, err := client.Do(req)
+			if err == nil {
+				defer res.Body.Close()
+				ioutil.ReadAll(res.Body)
+			}
+		}
+	})
 
 	if cfg, err := config.GetConfig(); err == nil {
 		db = datebase.NewClient(cfg.Db)
@@ -31,7 +55,6 @@ func main() {
 				server.CalcEstimatedQuota()
 				server.ServerClean(cfg, db)
 
-				cron := cron.New()
 				cron.AddFunc("@every 5s", func() { server.CalcEstimatedQuota() })
 				cron.AddFunc("@every 1m", func() { server.ServerClean(cfg, db) })
 				cron.Start()
