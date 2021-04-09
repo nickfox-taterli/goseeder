@@ -32,8 +32,8 @@ func main() {
 				server.ServerClean(cfg, db)
 
 				cron := cron.New()
-				cron.AddFunc("@every 30s", func() { server.CalcEstimatedQuota() })
-				cron.AddFunc("@every 5m", func() { server.ServerClean(cfg, db) })
+				cron.AddFunc("@every 5s", func() { server.CalcEstimatedQuota() })
+				cron.AddFunc("@every 1m", func() { server.ServerClean(cfg, db) })
 				cron.Start()
 
 				servers = append(servers, server)

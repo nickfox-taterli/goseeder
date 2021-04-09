@@ -116,9 +116,10 @@ func (s *Server) CalcEstimatedQuota() {
 				}
 				s.Status.EstimatedQuota -= t.AmountLeft
 			}
+		}else{
+			//如果无法获取状态,直接让并行任务数显示最大以跳过规则.
+			s.Status.ConcurrentDownload = 65535
 		}
-	}else{
-		fmt.Println(err)
 	}
 
 	if r, err := s.Client.Transfer.GetTransferInfo(); err == nil {
