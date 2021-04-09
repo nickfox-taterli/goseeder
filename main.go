@@ -50,12 +50,12 @@ func main() {
 			for _, t := range ts {
 				// 解决重复添加问题
 				for _, server := range servers {
+					server.CalcEstimatedQuota()
 					if db.Get(t.GUID) == false {
 						if Size, err := strconv.Atoi(t.Size); err == nil {
 							if server.AddTorrentByURL(t.URL, Size) == true {
 								fmt.Println(server.Remark + "添加了种子:" + t.Title)
 								db.Insert(t.Title, t.GUID, t.URL)
-								server.CalcEstimatedQuota()
 							}
 						}
 					}

@@ -69,19 +69,23 @@ func (s *Server) ServerRuleTest() bool {
 	if s.Status.UpInfoSpeed > s.Rule.MaxSpeed {
 		fmt.Printf(s.Remark + "上传速度过快,规则测试失败,限制速度 %.2f MB,现在速度 %.2f MB \n",float64(s.Rule.MaxSpeed) / 1048576.0,float64(s.Status.UpInfoSpeed) / 1048576.0)
 		return false
+	}else{
+		fmt.Printf(s.Remark + "上传速度过快,规则测试成功,限制速度 %.2f MB,现在速度 %.2f MB \n",float64(s.Rule.MaxSpeed) / 1048576.0,float64(s.Status.UpInfoSpeed) / 1048576.0)
 	}
 
 	if s.Status.DownInfoSpeed > s.Rule.MaxSpeed {
 		fmt.Printf(s.Remark + "下载速度过快,规则测试失败,限制速度 %.2f MB,现在速度 %.2f MB \n",float64(s.Rule.MaxSpeed) / 1048576.0,float64(s.Status.DownInfoSpeed) / 1048576.0)
 		return false
+	}else{
+		fmt.Printf(s.Remark + "下载速度过快,规则测试成功,限制速度 %.2f MB,现在速度 %.2f MB \n",float64(s.Rule.MaxSpeed) / 1048576.0,float64(s.Status.DownInfoSpeed) / 1048576.0)
 	}
 
 	if s.Status.ConcurrentDownload > s.Rule.ConcurrentDownload {
 		fmt.Printf(s.Remark + "同时任务数过多,规则测试失败,限制个数 %d,现在个数 %d \n",s.Rule.ConcurrentDownload,s.Status.ConcurrentDownload)
 		return false
+	}else{
+		fmt.Printf(s.Remark + "同时任务数过多,规则测试成功,限制个数 %d,现在个数 %d \n",s.Rule.ConcurrentDownload,s.Status.ConcurrentDownload)
 	}
-
-	fmt.Printf(s.Remark + "规则测试通过.\n")
 
 	return true
 }
