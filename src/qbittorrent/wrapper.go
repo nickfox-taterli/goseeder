@@ -67,35 +67,39 @@ func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
 }
 
 func (s *Server) ServerRuleTest() bool {
+	TestStatus := "测试成功"
+
 	if s.Rule.MaxDiskLatency < s.Status.DiskLatency {
-		fmt.Printf("[%s] 磁盘延迟过大,限制延迟 %d ms,现在延迟 %d ms \n", s.Remark, s.Rule.MaxDiskLatency, s.Status.DiskLatency)
-		return false
+		TestStatus = "测试失败"
 	}
 
 	if s.Status.UpInfoSpeed > s.Rule.MaxSpeed {
-		fmt.Printf("[%s] 上传速度过快,规则测试失败,限制速度 %.2f MB/s,现在速度 %.2f MB/s \n", s.Remark, float64(s.Rule.MaxSpeed)/1048576.0, float64(s.Status.UpInfoSpeed)/1048576.0)
-		return false
+		TestStatus = "测试失败"
 	}
 
 	if s.Status.DownInfoSpeed > s.Rule.MaxSpeed {
-		fmt.Printf("[%s] 下载速度过快,规则测试失败,限制速度 %.2f MB/s,现在速度 %.2f MB/s \n", s.Remark, float64(s.Rule.MaxSpeed)/1048576.0, float64(s.Status.DownInfoSpeed)/1048576.0)
-		return false
+		TestStatus = "测试失败"
 	}
 
 	if s.Status.ConcurrentDownload > s.Rule.ConcurrentDownload {
-		fmt.Printf("[%s] 同时任务数过多,规则测试失败,限制个数 %d,现在个数 %d \n", s.Remark, s.Rule.ConcurrentDownload, s.Status.ConcurrentDownload)
-		return false
+		TestStatus = "测试失败"
 	}
 
-	fmt.Printf("[%s] 当前磁盘空间余量 %.2f[%.2f]GB,磁盘延迟正常 %d[%d] ms,上传限制速度 %.2f[%.2f],下载限制速度 %.2f[%.2f],同时任务数 %d[%d] 个.\n", s.Remark,
+	fmt.Printf("[%s][%s] 当前磁盘空间余量 %.2f[%.2f]GB,磁盘延迟正常 %d[%d] ms,上传限制速度 %.2f[%.2f],下载限制速度 %.2f[%.2f],同时任务数 %d[%d] 个.\n",
+		s.Remark,TestStatus,
 		float64(s.Status.FreeSpaceOnDisk)/1073741824, float64(s.Status.EstimatedQuota)/1073741824.0,
 		s.Rule.MaxDiskLatency, s.Status.DiskLatency,
 		float64(s.Rule.MaxSpeed)/1048576.0, float64(s.Status.UpInfoSpeed)/1048576.0,
 		float64(s.Rule.MaxSpeed)/1048576.0, float64(s.Status.DownInfoSpeed)/1048576.0,
 		s.Rule.ConcurrentDownload, s.Status.ConcurrentDownload,
 	)
+	
+	if TestStatus == "测试失败" {
+		return false
+	}
 
 	return true
+
 }
 
 func (s *Server) AddTorrentByURL(URL string, Size int) bool {
