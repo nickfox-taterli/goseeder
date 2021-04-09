@@ -68,32 +68,32 @@ func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
 
 func (s *Server) ServerRuleTest() bool {
 	if s.Rule.MaxDiskLatency < s.Status.DiskLatency {
-		fmt.Printf(s.Remark+"磁盘延迟过大,限制延迟 %d ms,现在延迟 %d ms \n", s.Rule.MaxDiskLatency,s.Status.DiskLatency)
+		fmt.Printf("[%s] 磁盘延迟过大,限制延迟 %d ms,现在延迟 %d ms \n", s.Remark, s.Rule.MaxDiskLatency, s.Status.DiskLatency)
 		return false
-	}else{
-		fmt.Printf(s.Remark+"磁盘延迟正常,限制延迟 %d ms,现在延迟 %d ms \n", s.Rule.MaxDiskLatency,s.Status.DiskLatency)
 	}
 
 	if s.Status.UpInfoSpeed > s.Rule.MaxSpeed {
-		fmt.Printf(s.Remark+"上传速度过快,规则测试失败,限制速度 %.2f MB,现在速度 %.2f MB \n", float64(s.Rule.MaxSpeed)/1048576.0, float64(s.Status.UpInfoSpeed)/1048576.0)
+		fmt.Printf("[%s] 上传速度过快,规则测试失败,限制速度 %.2f MB/s,现在速度 %.2f MB/s \n", s.Remark, float64(s.Rule.MaxSpeed)/1048576.0, float64(s.Status.UpInfoSpeed)/1048576.0)
 		return false
-	} else {
-		fmt.Printf(s.Remark+"上传速度过快,规则测试成功,限制速度 %.2f MB,现在速度 %.2f MB \n", float64(s.Rule.MaxSpeed)/1048576.0, float64(s.Status.UpInfoSpeed)/1048576.0)
 	}
 
 	if s.Status.DownInfoSpeed > s.Rule.MaxSpeed {
-		fmt.Printf(s.Remark+"下载速度过快,规则测试失败,限制速度 %.2f MB,现在速度 %.2f MB \n", float64(s.Rule.MaxSpeed)/1048576.0, float64(s.Status.DownInfoSpeed)/1048576.0)
+		fmt.Printf("[%s] 下载速度过快,规则测试失败,限制速度 %.2f MB/s,现在速度 %.2f MB/s \n", s.Remark, float64(s.Rule.MaxSpeed)/1048576.0, float64(s.Status.DownInfoSpeed)/1048576.0)
 		return false
-	} else {
-		fmt.Printf(s.Remark+"下载速度过快,规则测试成功,限制速度 %.2f MB,现在速度 %.2f MB \n", float64(s.Rule.MaxSpeed)/1048576.0, float64(s.Status.DownInfoSpeed)/1048576.0)
 	}
 
 	if s.Status.ConcurrentDownload > s.Rule.ConcurrentDownload {
-		fmt.Printf(s.Remark+"同时任务数过多,规则测试失败,限制个数 %d,现在个数 %d \n", s.Rule.ConcurrentDownload, s.Status.ConcurrentDownload)
+		fmt.Printf("[%s] 同时任务数过多,规则测试失败,限制个数 %d,现在个数 %d \n", s.Remark, s.Rule.ConcurrentDownload, s.Status.ConcurrentDownload)
 		return false
-	} else {
-		fmt.Printf(s.Remark+"同时任务数过多,规则测试成功,限制个数 %d,现在个数 %d \n", s.Rule.ConcurrentDownload, s.Status.ConcurrentDownload)
 	}
+
+	fmt.Printf("[%s] 当前磁盘空间余量 %.2f[%.2f]GB,磁盘延迟正常 %d[%d] ms,上传限制速度 %.2f[%.2f],下载限制速度 %.2f[%.2f],同时任务数 %d[%d] 个.\n", s.Remark,
+		float64(s.Status.FreeSpaceOnDisk)/1073741824, float64(s.Status.EstimatedQuota)/1073741824.0,
+		s.Rule.MaxDiskLatency, s.Status.DiskLatency,
+		float64(s.Rule.MaxSpeed)/1048576.0, float64(s.Status.UpInfoSpeed)/1048576.0,
+		float64(s.Rule.MaxSpeed)/1048576.0, float64(s.Status.DownInfoSpeed)/1048576.0,
+		s.Rule.ConcurrentDownload, s.Status.ConcurrentDownload,
+	)
 
 	return true
 }
@@ -139,11 +139,6 @@ func (s *Server) CalcEstimatedQuota() {
 		s.Status.UpInfoSpeed = r.UpInfoSpeed
 		s.Status.DownInfoSpeed = r.DlInfoSpeed
 	}
-
-	fmt.Printf("[%s]当前磁盘空间余量 %.2f GB[%.2f GB],上传速度 %.2f MB/s,下载速度 %.2f MB/s.\n",
-		s.Remark, float64(s.Status.FreeSpaceOnDisk)/1073741824, float64(s.Status.EstimatedQuota)/1073741824.0,
-		float64(s.Status.UpInfoSpeed)/1048576.0, float64(s.Status.DownInfoSpeed)/1048576.0,
-	)
 }
 
 func NewClientWrapper(baseURL string, username string, password string, remark string, rule config.ServerRule) Server {

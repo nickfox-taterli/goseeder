@@ -72,16 +72,23 @@ func main() {
 			ts, _ = node.Get()
 			for _, t := range ts {
 				// 解决重复添加问题
-				for _, server := range servers {
-					server.CalcEstimatedQuota()
-					if db.Get(t.GUID) == false {
-						if Size, err := strconv.Atoi(t.Size); err == nil {
-							if server.AddTorrentByURL(t.URL, Size) == true {
-								fmt.Println(server.Remark + "添加了种子:" + t.Title)
-								db.Insert(t.Title, t.GUID, t.URL)
+				for i := 0; i <= 10; i++ {
+					for _, server := range servers {
+						server.CalcEstimatedQuota()
+						if db.Get(t.GUID) == false {
+							if Size, err := strconv.Atoi(t.Size); err == nil {
+								if server.AddTorrentByURL(t.URL, Size) == true {
+									fmt.Println("[" + server.Remark + "][添加]种子:" + t.Title)
+									db.Insert(t.Title, t.GUID, t.URL)
+								}
 							}
 						}
 					}
+				}
+				if db.Get(t.GUID) == false {
+					//找遍了所有服务器(10次尝试),还是没法找到添加的,那么,就直接插入数据库不再尝试.
+					fmt.Println("[忽略]种子:" + t.Title)
+					db.Insert(t.Title, t.GUID, t.URL)
 				}
 			}
 		}
