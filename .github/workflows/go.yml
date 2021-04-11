@@ -102,13 +102,7 @@ jobs:
           go-version: 1.15
 
       - name: Build
-        run: go build -v ./...
+        run: go build main.go -o GoSeeder
 
-      - name: Test
-        run: go test -v ./...
-
-      - uses: actions/upload-artifact@v1
-        with:
-          name: nuget
-          path: ${{ github.workspace }}/package
-        name: 'Upload Package'
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v2.2.3
