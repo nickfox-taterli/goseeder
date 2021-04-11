@@ -13,7 +13,7 @@ import (
 	"strconv"
 )
 
-func checkin() {
+func CheckIn() {
 	url := "https://api.honeybadger.io/v1/check_in/vOIMxP"
 
 	client := &http.Client{
@@ -35,9 +35,6 @@ func main() {
 	var servers []qbittorrent.Server
 
 	cron := cron.New()
-
-	cron.AddFunc("@every 30s", func() { checkin() })
-
 	if cfg, err := config.GetConfig(); err == nil {
 		db = datebase.NewClient(cfg.Db)
 		for _, value := range cfg.Node {
@@ -66,6 +63,7 @@ func main() {
 
 	for true {
 		var ts []nexus.Torrent
+		CheckIn()
 		for _, node := range nodes {
 			ts, _ = node.Get()
 			for _, t := range ts {

@@ -40,6 +40,7 @@ func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
 								if tracker.Status == model.TrackerStatusNotContacted || tracker.Status == model.TrackerStatusNotWorking {
 									s.Client.Torrent.DeleteTorrents([]string{t.Hash}, true)
 									fmt.Println("[" + s.Remark + "]清理无效种子." + t.Name)
+									return
 								}
 							}
 						}
@@ -50,12 +51,14 @@ func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
 									err = s.Client.Torrent.DeleteTorrents([]string{t.Hash}, true)
 									db.MarkFinished(t.Hash)
 									fmt.Println("[" + s.Remark + "]标记完成种子." + t.Name)
+									return
 								}
 							}
 						} else {
 							if (int(time.Now().Unix()) - t.CompletionOn) > s.Rule.MaxAliveTime {
 								s.Client.Torrent.DeleteTorrents([]string{t.Hash}, true)
 								fmt.Println("[" + s.Remark + "]删除超时种子." + t.Name)
+								return
 							}
 						}
 					}
