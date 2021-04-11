@@ -10,12 +10,8 @@ jobs:
   build:
       strategy:
         matrix:
-          # Include amd64 on all platforms.
-          goos: [linux, darwin]
-          goarch: [amd64, 386]
-          exclude:
-            - goarch: 386
-              goos: darwin
+          goos: [linux]
+          goarch: [amd64]
         fail-fast: false
       
       runs-on: ubuntu-latest
