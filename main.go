@@ -14,7 +14,19 @@ import (
 )
 
 func checkin() {
+	url := "https://api.honeybadger.io/v1/check_in/vOIMxP"
 
+	client := &http.Client{
+	}
+	req, err := http.NewRequest("GET", url, nil)
+
+	if err != nil {
+		res, err := client.Do(req)
+		if err == nil {
+			defer res.Body.Close()
+			ioutil.ReadAll(res.Body)
+		}
+	}
 }
 
 func main() {
@@ -24,21 +36,7 @@ func main() {
 
 	cron := cron.New()
 
-	cron.AddFunc("@every 30s", func() {
-		url := "https://api.honeybadger.io/v1/check_in/vOIMxP"
-
-		client := &http.Client{
-		}
-		req, err := http.NewRequest("GET", url, nil)
-
-		if err != nil {
-			res, err := client.Do(req)
-			if err == nil {
-				defer res.Body.Close()
-				ioutil.ReadAll(res.Body)
-			}
-		}
-	})
+	cron.AddFunc("@every 30s", func() { checkin() })
 
 	if cfg, err := config.GetConfig(); err == nil {
 		db = datebase.NewClient(cfg.Db)
