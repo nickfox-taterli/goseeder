@@ -102,7 +102,7 @@ jobs:
           go-version: 1.15
 
       - name: Build
-        run: go build main.go -o GoSeeder
+        run: go build -o GoSeeder main.go
 
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v2.2.3
