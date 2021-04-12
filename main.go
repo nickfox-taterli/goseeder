@@ -3,8 +3,6 @@ package main
 import (
 	"fmt"
 	"github.com/robfig/cron"
-	"io/ioutil"
-	"net/http"
 	"os"
 	"seeder/src/config"
 	"seeder/src/datebase"
