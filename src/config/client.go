@@ -29,7 +29,7 @@ type ServerRule struct {
 	MaxAliveTime       int `json:"max_alivetime"`
 	MinTaskSize        int `json:"min_tasksize"`
 	MaxTaskSize        int `json:"max_tasksize"`
-	MaxDiskLatency	   int `json:"max_disklatency"`
+	MaxDiskLatency     int `json:"max_disklatency"`
 }
 
 type Server struct {
@@ -78,6 +78,10 @@ func GetConfigFilePath() string {
 		if fileExists(configFile) {
 			return configFile
 		}
+	}
+
+	if fileExists("/etc/goseeder.conf") {
+		return "/etc/goseeder.conf"
 	}
 
 	return ""
