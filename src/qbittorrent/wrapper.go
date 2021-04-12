@@ -157,12 +157,24 @@ func (s *Server) ServerRuleTest() bool {
 }
 
 func (s *Server) AddTorrentByURL(URL string, Size int) bool {
-	var options model.AddTorrentsOptions
-	options.Savepath = "/downloads/"
-	options.Category = strings.Split(strings.Split(URL, "//")[1], "/")[0]
+	var options_add model.AddTorrentsOptions
+	options_add.Savepath = "/downloads/"
+	options_add.Category = strings.Split(strings.Split(URL, "//")[1], "/")[0]
+
+	var options_list model.GetTorrentListOptions
+	options_list.Filter = "all"
+	if ts, err := s.Client.Torrent.GetList(&options_list); err == nil {
+		for _, t := range ts {
+			if t.Size == Size {
+				//有同样大小的种子在一个机,容易产生混乱.
+				//@TODO后期可以利用这个特性做辅粽功能
+				return false
+			}
+		}
+	}
 
 	if Size < s.Rule.MaxTaskSize && Size > s.Rule.MinTaskSize && s.ServerRuleTest() == true {
-		if err := s.Client.Torrent.AddURLs([]string{URL}, &options); err == nil {
+		if err := s.Client.Torrent.AddURLs([]string{URL}, &options_add); err == nil {
 			return true
 		}
 	}
