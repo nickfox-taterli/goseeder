@@ -110,19 +110,19 @@ func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
 func (s *Server) ServerRuleTest() bool {
 	TestStatus := "测试成功"
 
-	if s.Rule.MaxDiskLatency < s.Status.DiskLatency {
+	if s.Rule.MaxDiskLatency <= s.Status.DiskLatency {
 		TestStatus = "测试失败"
 	}
 
-	if s.Status.UpInfoSpeed > s.Rule.MaxSpeed {
+	if s.Status.UpInfoSpeed >= s.Rule.MaxSpeed {
 		TestStatus = "测试失败"
 	}
 
-	if s.Status.DownInfoSpeed > s.Rule.MaxSpeed {
+	if s.Status.DownInfoSpeed >= s.Rule.MaxSpeed {
 		TestStatus = "测试失败"
 	}
 
-	if s.Status.ConcurrentDownload > s.Rule.ConcurrentDownload {
+	if s.Status.ConcurrentDownload >= s.Rule.ConcurrentDownload {
 		TestStatus = "测试失败"
 	}
 
