@@ -104,7 +104,7 @@ func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
 		return
 	}
 
-	fmt.Println("[" + s.Remark + "]无法完成清理.")
+	//fmt.Println("[" + s.Remark + "]无法完成清理.")
 }
 
 func (s *Server) ServerRuleTest() bool {
