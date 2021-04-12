@@ -13,22 +13,6 @@ import (
 	"strconv"
 )
 
-func CheckIn() {
-	url := "https://api.honeybadger.io/v1/check_in/vOIMxP"
-
-	client := &http.Client{
-	}
-	req, err := http.NewRequest("GET", url, nil)
-
-	if err != nil {
-		res, err := client.Do(req)
-		if err == nil {
-			defer res.Body.Close()
-			ioutil.ReadAll(res.Body)
-		}
-	}
-}
-
 func main() {
 	var db datebase.Client
 	var nodes []nexus.Client
@@ -63,7 +47,6 @@ func main() {
 
 	for true {
 		var ts []nexus.Torrent
-		CheckIn()
 		for _, node := range nodes {
 			ts, _ = node.Get()
 			for _, t := range ts {

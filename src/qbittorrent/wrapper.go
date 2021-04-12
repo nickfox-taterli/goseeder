@@ -27,25 +27,17 @@ type Server struct {
 }
 
 func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
-	//如果不在清理要求.
-	if s.Status.FreeSpaceOnDisk >= s.Rule.DiskThreshold {
-		return
-	}
-
-	//开始执行删除操作(第一圈,删除无效内容,无论如何都不会跳过的.)
-	if s.Status.FreeSpaceOnDisk < s.Rule.DiskThreshold {
-		var options model.GetTorrentListOptions
-		options.Filter = "all"
-		if ts, err := s.Client.Torrent.GetList(&options); err == nil {
-			for _, t := range ts {
-				for _, n := range cfg.Node {
-					if n.Source == t.Category {
-						if trackers, err := s.Client.Torrent.GetTrackers(t.Hash); err == nil && (int(time.Now().Unix())-t.AddedOn) > s.Rule.MinAliveTime {
-							for _, tracker := range trackers {
-								if tracker.Status == model.TrackerStatusNotContacted || tracker.Status == model.TrackerStatusNotWorking {
-									s.Client.Torrent.DeleteTorrents([]string{t.Hash}, true)
-									fmt.Println("[" + s.Remark + "]清理无效种子." + t.Name)
-								}
+	var options model.GetTorrentListOptions
+	options.Filter = "all"
+	if ts, err := s.Client.Torrent.GetList(&options); err == nil {
+		for _, t := range ts {
+			for _, n := range cfg.Node {
+				if n.Source == t.Category {
+					if trackers, err := s.Client.Torrent.GetTrackers(t.Hash); err == nil && (int(time.Now().Unix())-t.AddedOn) > s.Rule.MinAliveTime {
+						for _, tracker := range trackers {
+							if tracker.Status == model.TrackerStatusNotContacted || tracker.Status == model.TrackerStatusNotWorking {
+								s.Client.Torrent.DeleteTorrents([]string{t.Hash}, true)
+								fmt.Println("[" + s.Remark + "]清理无效种子." + t.Name)
 							}
 						}
 					}
@@ -53,15 +45,12 @@ func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
 			}
 		}
 	}
-	s.CalcEstimatedQuota()
 
 	//开始执行删除操作(第二圈,删除其中一个最古老的正在进行的任务.)
 	MaxAliveTime := 0
 	MaxAliveSeeder := ""
 	MaxAliveName := ""
 	if s.Status.FreeSpaceOnDisk < s.Rule.DiskThreshold {
-		var options model.GetTorrentListOptions
-		options.Filter = "all"
 		if ts, err := s.Client.Torrent.GetList(&options); err == nil {
 			for _, t := range ts {
 				for _, n := range cfg.Node {
@@ -91,8 +80,6 @@ func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
 	MaxAliveSeeder = ""
 	MaxAliveName = ""
 	if s.Status.FreeSpaceOnDisk < s.Rule.DiskThreshold {
-		var options model.GetTorrentListOptions
-		options.Filter = "all"
 		if ts, err := s.Client.Torrent.GetList(&options); err == nil {
 			for _, t := range ts {
 				for _, n := range cfg.Node {
@@ -167,7 +154,7 @@ func (s *Server) AddTorrentByURL(URL string, Size int) bool {
 		for _, t := range ts {
 			if t.Size == Size {
 				//有同样大小的种子在一个机,容易产生混乱.
-				//@TODO后期可以利用这个特性做辅粽功能
+				//@TODO后期可以利用这个特性做辅粽功能,必须数据库有Size才可以.
 				return false
 			}
 		}
