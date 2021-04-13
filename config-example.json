@@ -1,0 +1,91 @@
+{
+  "dbserver": "mongodb+srv://username:password@cluster0.3cyul.mongodb.net/?retryWrites=true&w=majority",
+  "node": [
+    {
+      "source": "pt.soulvoice.club",
+      "passkey": "21232f297a57a5a743894a0e4a801fc3",
+      "limit": 10,
+      "enable": true,
+      "rule": {
+        "seeder_time": 0,
+        "seeder_ratio": 0
+      }
+    },
+    {
+      "source": "www.nicept.net",
+      "passkey": "21232f297a57a5a743894a0e4a801fc3",
+      "limit": 10,
+      "enable": true,
+      "rule": {
+        "seeder_time": 0,
+        "seeder_ratio": 0
+      }
+    },
+    {
+      "source": "pt.msg.vg",
+      "passkey": "21232f297a57a5a743894a0e4a801fc3",
+      "limit": 10,
+      "enable": true,
+      "rule": {
+        "seeder_time": 0,
+        "seeder_ratio": 0
+      }
+    },
+    {
+      "source": "pt.btschool.club",
+      "passkey": "21232f297a57a5a743894a0e4a801fc3",
+      "limit": 10,
+      "enable": true,
+      "rule": {
+        "seeder_time": 86400,
+        "seeder_ratio": 1.2
+      }
+    },
+    {
+      "source": "www.haidan.video",
+      "passkey": "21232f297a57a5a743894a0e4a801fc3",
+      "limit": 10,
+      "enable": true,
+      "rule": {
+        "seeder_time": 216000,
+        "seeder_ratio": 1.5
+      }
+    }
+  ],
+  "server": [
+    {
+      "endpoint": "http://89.47.1.1:8080",
+      "username": "admin",
+      "password": "adminadmin",
+      "remark": "Hostens (1024G)",
+      "enable": true,
+      "rule": {
+        "concurrent_download": 5,
+        "disk_threshold": 10737412742,
+        "max_speed": 524288,
+        "min_alivetime":3600,
+        "max_alivetime":86400,
+        "min_tasksize": 1073741274,
+        "max_tasksize": 536870637122,
+        "max_disklatency": 10000
+      }
+    },
+    {
+      "endpoint": "http://114.114.114.114:8080",
+      "username": "admin",
+      "password": "adminadmin",
+      "remark": "Hostmem (60G)",
+      "enable": true,
+      "rule": {
+        "concurrent_download": 5,
+        "disk_threshold": 10737412742,
+        "max_speed": 5242880,
+        "min_alivetime":3600,
+        "max_alivetime":86400,
+        "min_tasksize": 1073741274,
+        "max_tasksize": 536870637122,
+        "max_disklatency": 10000
+      }
+    }
+  ]
+}
