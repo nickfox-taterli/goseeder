@@ -1,0 +1,15 @@
+[Unit]
+Description=Go Seeder Service
+After=network.target nss-lookup.target
+
+[Service]
+User=nobody
+NoNewPrivileges=true
+ExecStart=/usr/local/bin/goseeder
+Restart=on-failure
+RestartPreventExitStatus=23
+LimitNPROC=10000
+LimitNOFILE=1000000
+
+[Install]
+WantedBy=multi-user.target
