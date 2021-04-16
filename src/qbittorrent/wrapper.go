@@ -46,7 +46,8 @@ func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
 		}
 	}
 
-	//开始执行删除操作(第二圈,删除其中一个最古老的正在进行的任务.)
+
+	//开始执行删除操作(第二圈,删除其中一个最古老的完成的任务.)
 	MaxAliveTime := 0
 	MaxAliveSeeder := ""
 	MaxAliveName := ""
@@ -55,7 +56,7 @@ func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
 			for _, t := range ts {
 				for _, n := range cfg.Node {
 					if n.Source == t.Category {
-						if t.AmountLeft != 0 {
+						if t.AmountLeft == 0 {
 							if (int(time.Now().Unix()) - t.CompletionOn) > s.Rule.MaxAliveTime {
 								if MaxAliveTime < int(time.Now().Unix())-t.CompletionOn {
 									MaxAliveTime = int(time.Now().Unix()) - t.CompletionOn
@@ -75,7 +76,7 @@ func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
 		return
 	}
 
-	//开始执行删除操作(第三圈,删除其中一个最古老的完成的任务.)
+	//开始执行删除操作(第三圈,删除其中一个最古老的正在进行的任务.)
 	MaxAliveTime = 0
 	MaxAliveSeeder = ""
 	MaxAliveName = ""
@@ -84,8 +85,8 @@ func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
 			for _, t := range ts {
 				for _, n := range cfg.Node {
 					if n.Source == t.Category {
-						if t.AmountLeft == 0 {
-							if (int(time.Now().Unix()) - t.CompletionOn) > s.Rule.MaxAliveTime {
+						if t.AmountLeft != 0 {
+							if (int(time.Now().Unix()) - t.AddedOn) > s.Rule.MaxAliveTime {
 								if MaxAliveTime < int(time.Now().Unix())-t.CompletionOn {
 									MaxAliveTime = int(time.Now().Unix()) - t.CompletionOn
 									MaxAliveSeeder = t.Hash
