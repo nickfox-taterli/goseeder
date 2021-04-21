@@ -60,7 +60,7 @@ func main() {
 
 				t.Push(
 					server.Remark,
-					fmt.Sprintf("%.2f", float64(r.ServerState.FreeSpaceOnDisk)/107374182.0),
+					fmt.Sprintf("%.2f", float64(r.ServerState.FreeSpaceOnDisk)/1073741820),
 					fmt.Sprintf("%d", r.ServerState.AverageTimeQueue),
 					fmt.Sprintf("%.2f(U)|%.2f(D)", float64(r.ServerState.UpInfoSpeed)/1048576.0, float64(r.ServerState.DlInfoSpeed)/1048576.0),
 					fmt.Sprintf("%d(U)|%d(D)|%d(A)", ConcurrentUpload, ConcurrentDownload, TaskCount),
