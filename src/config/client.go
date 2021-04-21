@@ -22,14 +22,15 @@ type Node struct {
 }
 
 type ServerRule struct {
-	ConcurrentDownload int `json:"concurrent_download"`
-	DiskThreshold      int `json:"disk_threshold"`
-	MaxSpeed           int `json:"max_speed"`
-	MinAliveTime       int `json:"min_alivetime"`
-	MaxAliveTime       int `json:"max_alivetime"`
-	MinTaskSize        int `json:"min_tasksize"`
-	MaxTaskSize        int `json:"max_tasksize"`
-	MaxDiskLatency     int `json:"max_disklatency"`
+	ConcurrentDownload int  `json:"concurrent_download"`
+	DiskThreshold      int  `json:"disk_threshold"`
+	DiskOverCommit     bool `json:"disk_overcommit"`
+	MaxSpeed           int  `json:"max_speed"`
+	MinAliveTime       int  `json:"min_alivetime"`
+	MaxAliveTime       int  `json:"max_alivetime"`
+	MinTaskSize        int  `json:"min_tasksize"`
+	MaxTaskSize        int  `json:"max_tasksize"`
+	MaxDiskLatency     int  `json:"max_disklatency"`
 }
 
 type Server struct {

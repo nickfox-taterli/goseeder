@@ -54,6 +54,24 @@
   ],
   "server": [
     {
+      "endpoint": "http://23.94.26.1:8080",
+      "username": "admin",
+      "password": "adminadmin",
+      "remark": "Virmach (10G)",
+      "enable": true,
+      "rule": {
+        "concurrent_download": 1,
+        "disk_threshold": 1073741274,
+        "disk_overcommit": false,
+        "max_speed": 5242880,
+        "min_alivetime": 3600,
+        "max_alivetime": 86400,
+        "min_tasksize": 0,
+        "max_tasksize": 536870637122,
+        "max_disklatency": 5000
+      }
+    },
+    {
       "endpoint": "http://89.47.1.1:8080",
       "username": "admin",
       "password": "adminadmin",
@@ -62,9 +80,10 @@
       "rule": {
         "concurrent_download": 5,
         "disk_threshold": 10737412742,
+        "disk_overcommit": true,
         "max_speed": 524288,
-        "min_alivetime":3600,
-        "max_alivetime":86400,
+        "min_alivetime": 3600,
+        "max_alivetime": 86400,
         "min_tasksize": 1073741274,
         "max_tasksize": 536870637122,
         "max_disklatency": 10000
@@ -79,9 +98,10 @@
       "rule": {
         "concurrent_download": 5,
         "disk_threshold": 10737412742,
+        "disk_overcommit": true,
         "max_speed": 5242880,
-        "min_alivetime":3600,
-        "max_alivetime":86400,
+        "min_alivetime": 3600,
+        "max_alivetime": 86400,
         "min_tasksize": 1073741274,
         "max_tasksize": 536870637122,
         "max_disklatency": 10000

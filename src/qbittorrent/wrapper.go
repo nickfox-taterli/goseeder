@@ -162,8 +162,12 @@ func (s *Server) AddTorrentByURL(URL string, Size int) bool {
 	}
 
 	if Size < s.Rule.MaxTaskSize && Size > s.Rule.MinTaskSize && s.ServerRuleTest() == true {
-		if err := s.Client.Torrent.AddURLs([]string{URL}, &options_add); err == nil {
-			return true
+		//如果允许超量提交(即塞了这个任务后,并且任务完成后空间会负数,则不检查空间直接OK!),否则检查是否塞进去后还有空间剩余.
+		//这个功能针对极小盘有很好的作用,因为极小盘很容易就会塞满,参数又不好调整.
+		if s.Rule.DiskOverCommit == true || s.Status.EstimatedQuota > (s.Rule.DiskThreshold / 10) {
+			if err := s.Client.Torrent.AddURLs([]string{URL}, &options_add); err == nil {
+				return true
+			}
 		}
 	}
 
