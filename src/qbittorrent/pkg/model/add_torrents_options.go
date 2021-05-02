@@ -18,9 +18,9 @@ type AddTorrentsOptions struct {
 	// Rename torrent
 	Rename string `json:"rename,omitempty"`
 	// Set torrent upload speed limit. Unit in bytes/second
-	UpLimit int `json:"upLimit,omitempty"`
+	UpLimit string `json:"upLimit,omitempty"`
 	// Set torrent download speed limit. Unit in bytes/second
-	DlLimit int `json:"dlLimit,omitempty"`
+	DlLimit string `json:"dlLimit,omitempty"`
 	// Whether Automatic Torrent Management should be used
 	UseAutoTMM bool `json:"useAutoTMM,omitempty"`
 	// Enable sequential download. Possible values are true, false (default)

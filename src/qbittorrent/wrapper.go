@@ -2,12 +2,18 @@ package qbittorrent
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
+	"os"
 	"seeder/src/config"
 	"seeder/src/datebase"
 	"seeder/src/qbittorrent/pkg/model"
+	"strconv"
 	"strings"
 	"time"
+
+	//"seeder/src/qbittorrent/pkg/model"
+	//"strconv"
+	//"strings"
+	//"time"
 )
 
 type ServerStatus struct {
@@ -27,16 +33,14 @@ type Server struct {
 }
 
 func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
-	var options model.GetTorrentListOptions
-	options.Filter = "all"
-	if ts, err := s.Client.Torrent.GetList(&options); err == nil {
+	if ts, err := s.Client.GetList(); err == nil {
 		for _, t := range ts {
 			for _, n := range cfg.Node {
 				if n.Source == t.Category {
-					if trackers, err := s.Client.Torrent.GetTrackers(t.Hash); err == nil && (int(time.Now().Unix())-t.AddedOn) > s.Rule.MinAliveTime {
+					if trackers, err := s.Client.GetTrackers(t.Hash); err == nil && (int(time.Now().Unix())-t.AddedOn) > s.Rule.MinAliveTime {
 						for _, tracker := range trackers {
 							if tracker.Status == model.TrackerStatusNotContacted || tracker.Status == model.TrackerStatusNotWorking {
-								s.Client.Torrent.DeleteTorrents([]string{t.Hash}, true)
+								s.Client.DeleteTorrents(t.Hash)
 								fmt.Println("[" + s.Remark + "]清理无效种子." + t.Name)
 							}
 						}
@@ -51,7 +55,7 @@ func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
 	MaxAliveSeeder := ""
 	MaxAliveName := ""
 	if s.Status.FreeSpaceOnDisk < s.Rule.DiskThreshold {
-		if ts, err := s.Client.Torrent.GetList(&options); err == nil {
+		if ts, err := s.Client.GetList(); err == nil {
 			for _, t := range ts {
 				for _, n := range cfg.Node {
 					if n.Source == t.Category {
@@ -70,7 +74,7 @@ func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
 		}
 	}
 	if MaxAliveTime != 0 {
-		s.Client.Torrent.DeleteTorrents([]string{MaxAliveSeeder}, true)
+		s.Client.DeleteTorrents(MaxAliveSeeder)
 		fmt.Println("[" + s.Remark + "]删除超时种子." + MaxAliveName)
 		return
 	}
@@ -80,7 +84,7 @@ func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
 	MaxAliveSeeder = ""
 	MaxAliveName = ""
 	if s.Status.FreeSpaceOnDisk < s.Rule.DiskThreshold {
-		if ts, err := s.Client.Torrent.GetList(&options); err == nil {
+		if ts, err := s.Client.GetList(); err == nil {
 			for _, t := range ts {
 				for _, n := range cfg.Node {
 					if n.Source == t.Category {
@@ -99,7 +103,7 @@ func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
 		}
 	}
 	if MaxAliveTime != 0 {
-		s.Client.Torrent.DeleteTorrents([]string{MaxAliveSeeder}, true)
+		s.Client.DeleteTorrents(MaxAliveSeeder)
 		fmt.Println("[" + s.Remark + "]删除超时种子." + MaxAliveName)
 		return
 	}
@@ -147,12 +151,10 @@ func (s *Server) AddTorrentByURL(URL string, Size int, SpeedLimit int) bool {
 	var options_add model.AddTorrentsOptions
 	options_add.Savepath = "/downloads/"
 	options_add.Category = strings.Split(strings.Split(URL, "//")[1], "/")[0]
-	options_add.DlLimit = SpeedLimit
-	options_add.UpLimit = SpeedLimit
+	options_add.DlLimit = strconv.Itoa(SpeedLimit)
+	options_add.UpLimit = strconv.Itoa(SpeedLimit)
 
-	var options_list model.GetTorrentListOptions
-	options_list.Filter = "all"
-	if ts, err := s.Client.Torrent.GetList(&options_list); err == nil {
+	if ts, err := s.Client.GetList(); err == nil {
 		for _, t := range ts {
 			if t.Size == Size {
 				//有同样大小的种子在一个机,容易产生混乱.
@@ -166,25 +168,22 @@ func (s *Server) AddTorrentByURL(URL string, Size int, SpeedLimit int) bool {
 		//如果允许超量提交(即塞了这个任务后,并且任务完成后空间会负数,则不检查空间直接OK!),否则检查是否塞进去后还有空间剩余.
 		//这个功能针对极小盘有很好的作用,因为极小盘很容易就会塞满,参数又不好调整.
 		if s.Rule.DiskOverCommit == true || (s.Status.EstimatedQuota-Size) > (s.Rule.DiskThreshold/10) {
-			if err := s.Client.Torrent.AddURLs([]string{URL}, &options_add); err == nil {
+			if err := s.Client.AddURLs(URL, &options_add); err == nil {
 				return true
 			}
 		}
 	}
-
 	return false
 }
 
 func (s *Server) CalcEstimatedQuota() {
 	// 这里计算出来的是磁盘正在可以用的空间
-	if r, err := s.Client.Sync.GetMainData(); err == nil {
+	if r, err := s.Client.GetMainData(); err == nil {
 		s.Status.DiskLatency = r.ServerState.AverageTimeQueue
 		s.Status.FreeSpaceOnDisk = r.ServerState.FreeSpaceOnDisk
 		s.Status.EstimatedQuota = r.ServerState.FreeSpaceOnDisk
 		// 这里计算出来的是磁盘预期可以用的空间.(假设种子会全部下载)
-		var options model.GetTorrentListOptions
-		options.Filter = "all"
-		if ts, err := s.Client.Torrent.GetList(&options); err == nil {
+		if ts, err := s.Client.GetList(); err == nil {
 			s.Status.ConcurrentDownload = 0
 			for _, t := range ts {
 				if t.AmountLeft != 0 {
@@ -198,16 +197,19 @@ func (s *Server) CalcEstimatedQuota() {
 		}
 	}
 
-	if r, err := s.Client.Transfer.GetTransferInfo(); err == nil {
+	if r, err := s.Client.GetTransferInfo(); err == nil {
 		s.Status.UpInfoSpeed = r.UpInfoSpeed
 		s.Status.DownInfoSpeed = r.DlInfoSpeed
 	}
 }
 
 func NewClientWrapper(baseURL string, username string, password string, remark string, rule config.ServerRule) Server {
-	var logger = logrus.New()
-	server := NewClient(baseURL, logger)
-	server.Login(username, password)
+	server,err := NewClient(baseURL,username,password)
+
+	if err != nil {
+		print("[" + remark + "]密码打错了,赶紧去修正.")
+		os.Exit(-2)
+	}
 
 	return Server{
 		Client: server,
