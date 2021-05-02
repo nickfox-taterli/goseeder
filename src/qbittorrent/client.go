@@ -111,19 +111,15 @@ func (c Client) AddURLs(DestLink string,options *model.AddTorrentsOptions) error
 		return err
 	}
 
-
-	client := &http.Client {
-	}
 	req, err := http.NewRequest("POST", c.baseURL + "/torrents/add", payload)
 
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
-	req.Header.Add("Cookie", "SID=K5n3fJeYeiA2Rkty8EBlVUS/dVjnASma")
 
 	req.Header.Set("Content-Type", writer.FormDataContentType())
-	res, err := client.Do(req)
+	res, err := c.client.Do(req)
 	if err != nil {
 		fmt.Println(err)
 		return err
