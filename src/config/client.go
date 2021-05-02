@@ -10,7 +10,8 @@ import (
 
 type NodeRule struct {
 	SeederTime  int     `json:"seeder_time"`
-	SeederRatio float64 `json:"seeder_ratio"`
+	SeederRatio float64 `json:"seeder_ratio"` // Unit:MB
+	SpeedLimit  float64 `json:"speed_limit"`  // Unit:MB
 }
 
 type Node struct {
@@ -22,6 +23,18 @@ type Node struct {
 }
 
 type ServerRule struct {
+	ConcurrentDownload int     `json:"concurrent_download"`
+	DiskThreshold      float64 `json:"disk_threshold"` // Unit:GB
+	DiskOverCommit     bool    `json:"disk_overcommit"`
+	MaxSpeed           float64 `json:"max_speed"`       // Unit:MB
+	MinAliveTime       int     `json:"min_alivetime"`   // Unit:s
+	MaxAliveTime       int     `json:"max_alivetime"`   // Unit:s
+	MinTaskSize        float64 `json:"min_tasksize"`    // Unit:GB
+	MaxTaskSize        float64 `json:"max_tasksize"`    // Unit:GB
+	MaxDiskLatency     int     `json:"max_disklatency"` // Unit:ms
+}
+
+type RawServerRule struct {
 	ConcurrentDownload int  `json:"concurrent_download"`
 	DiskThreshold      int  `json:"disk_threshold"`
 	DiskOverCommit     bool `json:"disk_overcommit"`

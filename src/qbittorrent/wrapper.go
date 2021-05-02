@@ -21,7 +21,7 @@ type ServerStatus struct {
 
 type Server struct {
 	Client *Client
-	Rule   config.ServerRule
+	Rule   config.RawServerRule
 	Remark string
 	Status ServerStatus
 }
@@ -45,7 +45,6 @@ func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
 			}
 		}
 	}
-
 
 	//开始执行删除操作(第二圈,删除其中一个最古老的完成的任务.)
 	MaxAliveTime := 0
@@ -144,10 +143,12 @@ func (s *Server) ServerRuleTest() bool {
 
 }
 
-func (s *Server) AddTorrentByURL(URL string, Size int) bool {
+func (s *Server) AddTorrentByURL(URL string, Size int, SpeedLimit int) bool {
 	var options_add model.AddTorrentsOptions
 	options_add.Savepath = "/downloads/"
 	options_add.Category = strings.Split(strings.Split(URL, "//")[1], "/")[0]
+	options_add.DlLimit = SpeedLimit
+	options_add.UpLimit = SpeedLimit
 
 	var options_list model.GetTorrentListOptions
 	options_list.Filter = "all"
@@ -164,7 +165,7 @@ func (s *Server) AddTorrentByURL(URL string, Size int) bool {
 	if Size < s.Rule.MaxTaskSize && Size > s.Rule.MinTaskSize && s.ServerRuleTest() == true {
 		//如果允许超量提交(即塞了这个任务后,并且任务完成后空间会负数,则不检查空间直接OK!),否则检查是否塞进去后还有空间剩余.
 		//这个功能针对极小盘有很好的作用,因为极小盘很容易就会塞满,参数又不好调整.
-		if s.Rule.DiskOverCommit == true || (s.Status.EstimatedQuota - Size) > (s.Rule.DiskThreshold / 10) {
+		if s.Rule.DiskOverCommit == true || (s.Status.EstimatedQuota-Size) > (s.Rule.DiskThreshold/10) {
 			if err := s.Client.Torrent.AddURLs([]string{URL}, &options_add); err == nil {
 				return true
 			}
@@ -210,7 +211,17 @@ func NewClientWrapper(baseURL string, username string, password string, remark s
 
 	return Server{
 		Client: server,
-		Rule:   rule,
+		Rule: config.RawServerRule{
+			ConcurrentDownload: rule.ConcurrentDownload,
+			DiskThreshold:      int(rule.DiskThreshold * 1024 * 1024 * 1024),
+			DiskOverCommit:     rule.DiskOverCommit,
+			MaxSpeed:           int(rule.MaxSpeed * 1024 * 1024),
+			MinAliveTime:       rule.MinAliveTime,
+			MaxAliveTime:       rule.MaxAliveTime,
+			MinTaskSize:        int(rule.MinTaskSize * 1024 * 1024 * 1024),
+			MaxTaskSize:        int(rule.MaxTaskSize * 1024 * 1024 * 1024),
+			MaxDiskLatency:     rule.MaxDiskLatency,
+		},
 		Remark: remark,
 	}
 }
