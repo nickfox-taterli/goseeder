@@ -180,7 +180,7 @@ func NewClient(baseURL string,username string,password string) (*Client,error) {
 	client := &http.Client {}
 	c := Client{
 		baseURL: baseURL,
-		loginURI: baseURL+ "/auth/login?username=" + username + "&password=" + password
+		loginURI: baseURL+ "/auth/login?username=" + username + "&password=" + password,
 		client:  client,
 	}
 
