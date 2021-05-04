@@ -28,28 +28,29 @@ type Server struct {
 }
 
 func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
-	if ts, err := s.Client.GetList(); err == nil {
-		for _, t := range ts {
-			for _, n := range cfg.Node {
-				if n.Source == t.Category {
-					if trackers, err := s.Client.GetTrackers(t.Hash); err == nil && (int(time.Now().Unix())-t.AddedOn) > s.Rule.MinAliveTime {
-						for _, tracker := range trackers {
-							if tracker.Status == model.TrackerStatusNotContacted || tracker.Status == model.TrackerStatusNotWorking {
-								s.Client.DeleteTorrents(t.Hash)
-								fmt.Println("[" + s.Remark + "]清理无效种子." + t.Name)
+	if s.Status.FreeSpaceOnDisk < s.Rule.DiskThreshold {
+		if ts, err := s.Client.GetList(); err == nil {
+			for _, t := range ts {
+				for _, n := range cfg.Node {
+					if n.Source == t.Category {
+						if trackers, err := s.Client.GetTrackers(t.Hash); err == nil && (int(time.Now().Unix())-t.AddedOn) > s.Rule.MinAliveTime {
+							for _, tracker := range trackers {
+								if tracker.Status == model.TrackerStatusNotContacted || tracker.Status == model.TrackerStatusNotWorking {
+									s.Client.DeleteTorrents(t.Hash)
+									fmt.Println("[" + s.Remark + "]清理无效种子." + t.Name)
+								}
 							}
 						}
 					}
 				}
 			}
 		}
-	}
 
-	//开始执行删除操作(第二圈,删除其中一个最古老的完成的任务.)
-	MaxAliveTime := 0
-	MaxAliveSeeder := ""
-	MaxAliveName := ""
-	if s.Status.FreeSpaceOnDisk < s.Rule.DiskThreshold {
+		//开始执行删除操作(第二圈,删除其中一个最古老的完成的任务.)
+		MaxAliveTime := 0
+		MaxAliveSeeder := ""
+		MaxAliveName := ""
+
 		if ts, err := s.Client.GetList(); err == nil {
 			for _, t := range ts {
 				for _, n := range cfg.Node {
@@ -67,18 +68,16 @@ func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
 				}
 			}
 		}
-	}
-	if MaxAliveTime != 0 {
-		s.Client.DeleteTorrents(MaxAliveSeeder)
-		fmt.Println("[" + s.Remark + "]删除超时种子." + MaxAliveName)
-		return
-	}
+		if MaxAliveTime != 0 {
+			s.Client.DeleteTorrents(MaxAliveSeeder)
+			fmt.Println("[" + s.Remark + "]删除超时种子." + MaxAliveName)
+			return
+		}
 
-	//开始执行删除操作(第三圈,删除其中一个最古老的正在进行的任务.)
-	MaxAliveTime = 0
-	MaxAliveSeeder = ""
-	MaxAliveName = ""
-	if s.Status.FreeSpaceOnDisk < s.Rule.DiskThreshold {
+		//开始执行删除操作(第三圈,删除其中一个最古老的正在进行的任务.)
+		MaxAliveTime = 0
+		MaxAliveSeeder = ""
+		MaxAliveName = ""
 		if ts, err := s.Client.GetList(); err == nil {
 			for _, t := range ts {
 				for _, n := range cfg.Node {
@@ -96,11 +95,12 @@ func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
 				}
 			}
 		}
-	}
-	if MaxAliveTime != 0 {
-		s.Client.DeleteTorrents(MaxAliveSeeder)
-		fmt.Println("[" + s.Remark + "]删除超时种子." + MaxAliveName)
-		return
+
+		if MaxAliveTime != 0 {
+			s.Client.DeleteTorrents(MaxAliveSeeder)
+			fmt.Println("[" + s.Remark + "]删除超时种子." + MaxAliveName)
+			return
+		}
 	}
 
 	//fmt.Println("[" + s.Remark + "]无法完成清理.")

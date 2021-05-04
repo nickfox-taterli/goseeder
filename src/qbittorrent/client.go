@@ -131,7 +131,7 @@ func (c Client) AddURLs(DestLink string,options *model.AddTorrentsOptions) error
 		fmt.Println(err)
 		return err
 	}
-	fmt.Println(string(body))
+	//fmt.Println(string(body))
 
 	return nil
 }
