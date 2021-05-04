@@ -35,14 +35,14 @@ func main() {
 		})
 
 		for _, server := range servers {
-			if r, err := server.Client.Sync.GetMainData(); err == nil {
+			if r, err := server.Client.GetMainData(); err == nil {
 				ConcurrentDownload := 0
 				ConcurrentUpload := 0
 				TaskCount := 0
 
 				var options model.GetTorrentListOptions
 				options.Filter = "all"
-				if ts, err := server.Client.Torrent.GetList(&options); err == nil {
+				if ts, err := server.Client.GetList(); err == nil {
 					for _, t := range ts {
 						if t.AmountLeft != 0 {
 							ConcurrentDownload++
