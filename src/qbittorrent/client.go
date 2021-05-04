@@ -91,7 +91,7 @@ func (c Client) GetTrackers(hash string) ([]*model.TorrentTracker, error) {
 
 func (c Client) DeleteTorrents(hash string) error {
 	var res string
-	if err := c.GetInto("/torrents/delete?hashes="  + hash + "&deleteFiles=false",&res); err != nil {
+	if err := c.GetInto("/torrents/delete?hashes="  + hash + "&deleteFiles=true",&res); err != nil {
 		return err
 	}
 	return nil
