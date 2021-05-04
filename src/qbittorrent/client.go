@@ -165,7 +165,7 @@ func (c Client) AddURLs(DestLink string,options *model.AddTorrentsOptions) error
 	}
 	defer res.Body.Close()
 
-	_, err := ioutil.ReadAll(res.Body)
+	_, err = ioutil.ReadAll(res.Body)
 	if err != nil {
 		fmt.Println(err)
 		return err
