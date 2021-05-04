@@ -2,7 +2,6 @@ package qbittorrent
 
 import (
 	"fmt"
-	"os"
 	"seeder/src/config"
 	"seeder/src/datebase"
 	"seeder/src/qbittorrent/pkg/model"
@@ -203,7 +202,6 @@ func NewClientWrapper(baseURL string, username string, password string, remark s
 
 	if err != nil {
 		print("[" + remark + "]密码打错了,赶紧去修正.")
-		os.Exit(-2)
 	}
 
 	return Server{

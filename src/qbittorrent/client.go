@@ -18,12 +18,13 @@ import (
 
 type Client struct {
 	baseURL     string
+	loginURI     string
 	client      *http.Client
 }
 
 
-func (c *Client) GetInto(url string, target interface{}) (err error) {
-	req, err := http.NewRequest("GET", c.baseURL + url, nil)
+func (c Client) Auth() error {
+	req, err := http.NewRequest("GET", c.loginURI, nil)
 
 	if err != nil {
 		fmt.Println(err)
@@ -44,8 +45,46 @@ func (c *Client) GetInto(url string, target interface{}) (err error) {
 		return err
 	}
 
+	if string(body) != "Ok." {
+		return errors.New("Password Error!")
+	}
+
+	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
+	if err != nil {
+		return err
+	}
+	apiURL, err := url.Parse(c.baseURL)
+	jar.SetCookies(apiURL, []*http.Cookie{res.Cookies()[0]})
+	c.client.Jar = jar
+
+	return err
+}
+
+func (c *Client) GetInto(url string, target interface{}) (err error) {
+	req, err := http.NewRequest("GET", c.baseURL + url, nil)
+
+	if err != nil {
+		c.Auth()
+		return err
+	}
+
+	res, err := c.client.Do(req)
+	if err != nil {
+		c.Auth()
+		return err
+	}
+
+	defer res.Body.Close()
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		c.Auth()
+		return err
+	}
+
 	if err := json.NewDecoder(bytes.NewReader(body)).Decode(target); err != nil {
 		if err2 := json.NewDecoder(strings.NewReader(`"` + string(body) + `"`)).Decode(target); err2 != nil {
+			c.Auth()
 			return err
 		}
 	}
@@ -126,7 +165,7 @@ func (c Client) AddURLs(DestLink string,options *model.AddTorrentsOptions) error
 	}
 	defer res.Body.Close()
 
-	body, err := ioutil.ReadAll(res.Body)
+	_, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -141,41 +180,9 @@ func NewClient(baseURL string,username string,password string) (*Client,error) {
 	client := &http.Client {}
 	c := Client{
 		baseURL: baseURL,
+		loginURI: baseURL+ "/auth/login?username=" + username + "&password=" + password
 		client:  client,
 	}
 
-	req, err := http.NewRequest("GET", c.baseURL+ "/auth/login?username=" + username + "&password=" + password, nil)
-
-	if err != nil {
-		fmt.Println(err)
-		return nil,err
-	}
-
-	res, err := client.Do(req)
-	if err != nil {
-		fmt.Println(err)
-		return nil,err
-	}
-
-	defer res.Body.Close()
-
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		fmt.Println(err)
-		return nil,err
-	}
-
-	if string(body) != "Ok." {
-		return nil,errors.New("Password Error!")
-	}
-
-	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
-	if err != nil {
-		return nil,err
-	}
-	apiURL, err := url.Parse(c.baseURL)
-	jar.SetCookies(apiURL, []*http.Cookie{res.Cookies()[0]})
-	c.client.Jar = jar
-
-	return &c, nil
+	return &c, c.Auth()
 }
