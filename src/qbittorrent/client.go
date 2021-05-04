@@ -23,18 +23,19 @@ type Client struct {
 }
 
 
-func (c Client) Auth() error {
-	req, err := http.NewRequest("GET", c.loginURI, nil)
+func Auth(baseURL string, loginURI string) (*http.Client,error) {
+	client := &http.Client {}
+	req, err := http.NewRequest("GET", loginURI, nil)
 
 	if err != nil {
 		fmt.Println(err)
-		return err
+		return nil,err
 	}
 
-	res, err := c.client.Do(req)
+	res, err := client.Do(req)
 	if err != nil {
 		fmt.Println(err)
-		return err
+		return nil,err
 	}
 
 	defer res.Body.Close()
@@ -42,35 +43,35 @@ func (c Client) Auth() error {
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		fmt.Println(err)
-		return err
+		return nil,err
 	}
 
 	if string(body) != "Ok." {
-		return errors.New("Password Error!")
+		return nil,errors.New("Password Error!")
 	}
 
 	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
 	if err != nil {
-		return err
+		return nil,err
 	}
-	apiURL, err := url.Parse(c.baseURL)
+	apiURL, err := url.Parse(baseURL)
 	jar.SetCookies(apiURL, []*http.Cookie{res.Cookies()[0]})
-	c.client.Jar = jar
+	client.Jar = jar
 
-	return err
+	return client,err
 }
 
 func (c *Client) GetInto(url string, target interface{}) (err error) {
 	req, err := http.NewRequest("GET", c.baseURL + url, nil)
 
 	if err != nil {
-		c.Auth()
+		Auth(c.baseURL,c.loginURI)
 		return err
 	}
 
 	res, err := c.client.Do(req)
 	if err != nil {
-		c.Auth()
+		Auth(c.baseURL,c.loginURI)
 		return err
 	}
 
@@ -78,13 +79,13 @@ func (c *Client) GetInto(url string, target interface{}) (err error) {
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		c.Auth()
+		Auth(c.baseURL,c.loginURI)
 		return err
 	}
 
 	if err := json.NewDecoder(bytes.NewReader(body)).Decode(target); err != nil {
 		if err2 := json.NewDecoder(strings.NewReader(`"` + string(body) + `"`)).Decode(target); err2 != nil {
-			c.Auth()
+			Auth(c.baseURL,c.loginURI)
 			return err
 		}
 	}
@@ -165,24 +166,30 @@ func (c Client) AddURLs(DestLink string,options *model.AddTorrentsOptions) error
 	}
 	defer res.Body.Close()
 
-	_, err = ioutil.ReadAll(res.Body)
+	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
-	//fmt.Println(string(body))
+
+	if string(body) != "Ok." {
+		return errors.New("AddURL Error!")
+	}
 
 	return nil
 }
 
 func NewClient(baseURL string,username string,password string) (*Client,error) {
 	baseURL = baseURL + "/api/v2"
-	client := &http.Client {}
+	loginURI := baseURL + "/auth/login?username=" + username + "&password=" + password
+	client, err := Auth(baseURL,loginURI)
+
 	c := Client{
-		baseURL: baseURL,
-		loginURI: baseURL+ "/auth/login?username=" + username + "&password=" + password,
-		client:  client,
+		baseURL:  baseURL,
+		loginURI: loginURI,
+		client:   client,
 	}
 
-	return &c, c.Auth()
+
+	return &c, err
 }
