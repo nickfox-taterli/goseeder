@@ -28,8 +28,11 @@ jobs:
         with:
           go-version: 1.15
 
-      - name: Build
-        run: go build -o GoSeeder main.go
+      - name: Build Main
+        run: go build -o goseeder main.go
+
+      - name: Build Stat Tool
+        run: go build -o gostat stat.go
 
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v2.2.3
