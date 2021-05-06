@@ -158,6 +158,15 @@ func (s *Server) AddTorrentByURL(URL string, Size int, SpeedLimit int) bool {
 		}
 	}
 
+	//测试特殊网站规则(Beta),避免有些网站付费种太多.
+
+	// HDTIME网站不足100G大小种子会被忽略.
+	if strings.Contains(URL, "hdtime.org") {
+		if Size < 100 * 1024 * 1024 * 1024 {
+			return true
+		}
+	}
+
 	if Size < s.Rule.MaxTaskSize && Size > s.Rule.MinTaskSize && s.ServerRuleTest() == true {
 		//如果允许超量提交(即塞了这个任务后,并且任务完成后空间会负数,则不检查空间直接OK!),否则检查是否塞进去后还有空间剩余.
 		//这个功能针对极小盘有很好的作用,因为极小盘很容易就会塞满,参数又不好调整.
