@@ -12,6 +12,7 @@ import (
 	"net/http/cookiejar"
 	"net/url"
 	"seeder/src/qbittorrent/pkg/model"
+	"strconv"
 	"strings"
 
 )
@@ -132,6 +133,14 @@ func (c Client) GetTrackers(hash string) ([]*model.TorrentTracker, error) {
 func (c Client) DeleteTorrents(hash string) error {
 	var res string
 	if err := c.GetInto("/torrents/delete?hashes="  + hash + "&deleteFiles=true",&res); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c Client) SetDownloadLimit(limit int) error {
+	var res string
+	if err := c.GetInto("/transfer/setDownloadLimit?limit="  + strconv.Itoa(limit),&res); err != nil {
 		return err
 	}
 	return nil
