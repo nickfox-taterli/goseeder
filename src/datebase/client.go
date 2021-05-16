@@ -33,7 +33,7 @@ func NewClient(connURL string) Client {
 		log.Fatal(err)
 	}
 
-	db := client.Database("torrent_demo")
+	db := client.Database("torrent")
 	collection := db.Collection("comments")
 
 	return Client{
