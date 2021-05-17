@@ -33,6 +33,7 @@ func main() {
 				server.ServerClean(cfg, db)
 
 				cron.AddFunc("@every 5s", func() { server.CalcEstimatedQuota() })
+				cron.AddFunc("@every 1m", func() { server.AnnounceRace() })
 				cron.AddFunc("@every 1m", func() { server.ServerClean(cfg, db) })
 				cron.Start()
 

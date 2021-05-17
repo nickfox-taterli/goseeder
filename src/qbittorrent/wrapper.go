@@ -26,6 +26,14 @@ type Server struct {
 	Status ServerStatus
 }
 
+func (s *Server) AnnounceRace() {
+	if ts, err := s.Client.GetList(); err == nil {
+		for _, t := range ts {
+			s.Client.ReannounceTorrents(t.Hash)
+		}
+	}
+}
+
 func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
 	if s.Status.FreeSpaceOnDisk < s.Rule.DiskThreshold {
 		if ts, err := s.Client.GetList(); err == nil {

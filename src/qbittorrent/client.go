@@ -138,6 +138,14 @@ func (c Client) DeleteTorrents(hash string) error {
 	return nil
 }
 
+func (c Client) ReannounceTorrents(hash string) error {
+	var res string
+	if err := c.GetInto("/torrents/reannounce?hashes="  + hash,&res); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (c Client) SetDownloadLimit(limit int) error {
 	var res string
 	if err := c.GetInto("/transfer/setDownloadLimit?limit="  + strconv.Itoa(limit),&res); err != nil {
