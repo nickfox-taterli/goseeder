@@ -18,7 +18,7 @@ func main() {
 
 	cron := cron.New()
 	if cfg, err := config.GetConfig(); err == nil {
-		db = datebase.NewClient(cfg.Db)
+		db = datebase.NewClient()
 		for _, value := range cfg.Node {
 			if value.Enable == true {
 				node := nexus.NewClient(value.Source, value.Limit, value.Passkey, value.Rule)
@@ -30,11 +30,11 @@ func main() {
 				server := qbittorrent.NewClientWrapper(value.Endpoint, value.Username, value.Password, value.Remark, value.Rule)
 
 				server.CalcEstimatedQuota()
-				server.ServerClean(cfg, db)
+				server.ServerClean(cfg)
 
 				cron.AddFunc("@every 5s", func() { server.CalcEstimatedQuota() })
 				cron.AddFunc("@every 1m", func() { server.AnnounceRace() })
-				cron.AddFunc("@every 1m", func() { server.ServerClean(cfg, db) })
+				cron.AddFunc("@every 1m", func() { server.ServerClean(cfg) })
 				cron.Start()
 
 				servers = append(servers, server)
@@ -54,7 +54,7 @@ func main() {
 					server.CalcEstimatedQuota()
 					if db.Get(t.GUID) == false {
 						if Size, err := strconv.Atoi(t.Size); err == nil {
-							if server.AddTorrentByURL(t.URL, Size, int(node.Rule.SpeedLimit * 1024 * 1024)) == true {
+							if server.AddTorrentByURL(t.URL, Size, int(node.Rule.SpeedLimit*1024*1024)) == true {
 								fmt.Println("[" + server.Remark + "][添加]种子:" + t.Title)
 								db.Insert(t.Title, t.GUID, t.URL)
 							}

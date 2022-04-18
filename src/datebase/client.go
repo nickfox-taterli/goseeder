@@ -1,50 +1,48 @@
 package datebase
 
 import (
-	"context"
-	"fmt"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"log"
+	"database/sql"
+	_ "github.com/mattn/go-sqlite3"
 	"time"
 )
 
 type Client struct {
-	Collection *mongo.Collection
+	DB *sql.DB
 }
 
-type comments struct {
-	Title           string    `bson:"title"`
-	TorrentHash     string    `bson:"torrent_hash"`
-	TorrentAnnounce string    `bson:"torrent_announce"`
-	CreateTime      time.Time `bson:"create_time"`
-	Finished        bool      `bson:"finished"`
-}
-
-func NewClient(connURL string) Client {
-	client, err := mongo.NewClient(options.Client().ApplyURI(connURL))
+func NewClient() Client {
+	db, err := sql.Open("sqlite3", "/usr/local/goseeder.db")
 	if err != nil {
-		log.Fatal(err)
-	}
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	err = client.Connect(ctx)
-	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
-	db := client.Database("torrent")
-	collection := db.Collection("comments")
+	_, err = db.Exec("CREATE TABLE IF NOT EXISTS Torrent (torrent_hash CHAR,title CHAR,torrent_announce CHAR,create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,PRIMARY KEY('torrent_hash'))")
+	if err != nil {
+		panic(err)
+	}
 
 	return Client{
-		Collection: collection,
+		DB: db,
 	}
 }
 
 func (c *Client) Get(hashId string) bool {
-	var dataset comments
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	if err := c.Collection.FindOne(ctx, bson.M{"torrent_hash": hashId}).Decode(&dataset); err == nil {
+	var torrent_hash string
+	var title string
+	var torrent_announce string
+	var create_time time.Time
+
+	// 查询数据
+	rows, err := c.DB.Query("SELECT * FROM Torrent WHERE torrent_hash == '" + hashId + "'")
+	if err != nil {
+		panic(err)
+	}
+
+	defer rows.Close()
+	rows.Next()
+
+	err = rows.Scan(&torrent_hash, &title, &torrent_announce, &create_time)
+	if err == nil {
 		return true
 	}
 
@@ -52,28 +50,16 @@ func (c *Client) Get(hashId string) bool {
 }
 
 func (c *Client) Insert(Title string, TorrentHash string, TorrentAnnounce string) bool {
-	dataset := comments{
-		Title:           Title,
-		TorrentHash:     TorrentHash,
-		TorrentAnnounce: TorrentAnnounce,
-		CreateTime:      time.Now(),
-		Finished:        false,
-	}
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	if _, err := c.Collection.InsertOne(ctx, dataset); err == nil {
-		return true
-	} else {
-		fmt.Println(err)
+	// 插入数据
+	stmt, err := c.DB.Prepare("INSERT INTO Torrent ('torrent_hash', 'title', 'torrent_announce') VALUES (?,?,?)")
+	if err != nil {
+		panic(err)
 	}
 
-	return false
-}
-
-func (c *Client) MarkFinished(hashId string) bool {
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	if _, err := c.Collection.UpdateOne(ctx, bson.M{"torrent_hash": hashId}, bson.M{"$set": bson.M{"finished": true}}); err == nil {
-		return true
+	_, err = stmt.Exec(TorrentHash, Title, TorrentAnnounce)
+	if err != nil {
+		panic(err)
 	}
 
-	return false
+	return true
 }

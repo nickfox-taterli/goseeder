@@ -3,7 +3,6 @@ package qbittorrent
 import (
 	"fmt"
 	"seeder/src/config"
-	"seeder/src/datebase"
 	"seeder/src/qbittorrent/pkg/model"
 	"strconv"
 	"strings"
@@ -34,7 +33,7 @@ func (s *Server) AnnounceRace() {
 	}
 }
 
-func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
+func (s *Server) ServerClean(cfg config.Config) {
 	if s.Status.FreeSpaceOnDisk < s.Rule.DiskThreshold {
 		if ts, err := s.Client.GetList(); err == nil {
 			for _, t := range ts {
@@ -110,6 +109,39 @@ func (s *Server) ServerClean(cfg config.Config, db datebase.Client) {
 		}
 	}
 
+	// 即使有空间但是没速度也应该执行清理
+	if (s.Status.UpInfoSpeed + s.Status.DownInfoSpeed) < (512 * 1024) {
+		// 执行和上面第三圈一样的操作
+		DownloadCnt := 0
+		MaxAliveTime := 0
+		MaxAliveSeeder := ""
+		MaxAliveName := ""
+		if ts, err := s.Client.GetList(); err == nil {
+			for _, t := range ts {
+				for _, n := range cfg.Node {
+					if n.Source == t.Category {
+						if t.AmountLeft != 0 {
+							DownloadCnt = DownloadCnt + 1
+							if (int(time.Now().Unix()) - t.AddedOn) > s.Rule.MaxAliveTime {
+								if MaxAliveTime > int(time.Now().Unix())-t.CompletionOn {
+									MaxAliveTime = int(time.Now().Unix()) - t.CompletionOn
+									MaxAliveSeeder = t.Hash
+									MaxAliveName = t.Name
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if MaxAliveTime != 0 && DownloadCnt > (s.Rule.ConcurrentDownload/2) {
+			s.Client.DeleteTorrents(MaxAliveSeeder)
+			fmt.Println("[" + s.Remark + "]删除超时种子." + MaxAliveName)
+			return
+		}
+	}
+
 	//fmt.Println("[" + s.Remark + "]无法完成清理.")
 }
 
@@ -170,7 +202,7 @@ func (s *Server) AddTorrentByURL(URL string, Size int, SpeedLimit int) bool {
 
 	// HDTIME网站不足100G大小种子会被忽略.
 	if strings.Contains(URL, "hdtime.org") {
-		if Size < 100 * 1024 * 1024 * 1024 {
+		if Size < 100*1024*1024*1024 {
 			return true
 		}
 	}
@@ -215,7 +247,7 @@ func (s *Server) CalcEstimatedQuota() {
 }
 
 func NewClientWrapper(baseURL string, username string, password string, remark string, rule config.ServerRule) Server {
-	server,err := NewClient(baseURL,username,password)
+	server, err := NewClient(baseURL, username, password)
 
 	if err != nil {
 		print("[" + remark + "]密码打错了,赶紧去修正.")

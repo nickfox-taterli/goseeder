@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/codegangsta/cli v1.20.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
+	github.com/mattn/go-sqlite3 v1.14.12 // indirect
 	github.com/mmcdole/gofeed v1.1.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/robfig/cron v1.2.0 // indirect
