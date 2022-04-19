@@ -55,7 +55,7 @@ func main() {
 					if db.Get(t.GUID) == false {
 						if Size, err := strconv.Atoi(t.Size); err == nil {
 							if server.AddTorrentByURL(t.URL, Size, int(node.Rule.SpeedLimit*1024*1024)) == true {
-								fmt.Println("[" + server.Remark + "][添加]种子:" + t.Title)
+								fmt.Println("[添加]种子:" + t.Title)
 								db.Insert(t.Title, t.GUID, t.URL)
 							}
 						}
