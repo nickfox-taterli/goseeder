@@ -13,5 +13,5 @@ require (
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/tomcraven/gotable v0.0.0-20160801225336-eb315dabcfbd // indirect
 	go.mongodb.org/mongo-driver v1.5.1 // indirect
-	golang.org/x/net v0.0.0-20210331212208-0fccb6fa2b5c // indirect
+	golang.org/x/net v0.7.0 // indirect
 )
